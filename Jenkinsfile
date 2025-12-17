@@ -1,10 +1,6 @@
 pipeline {
   //Esto significa que lo ejecutará cualquier agente
-  agent {
-        docker {
-            image 'python:3.11-slim'
-        }
-  }
+  agent any
 
   stages {
     stage('Checkout') {
