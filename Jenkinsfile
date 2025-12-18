@@ -48,6 +48,14 @@ pipeline {
         '''
       }
     }
+
+    stage('Run Docker image') {
+      steps {
+        sh '''
+          docker run --rm $IMAGE_NAME:$IMAGE_TAG
+        '''
+      }
+    }
   }
 }
 
