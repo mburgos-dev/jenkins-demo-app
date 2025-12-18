@@ -1,6 +1,11 @@
 pipeline {
   agent any
 
+  environment {
+    IMAGE_NAME = "localhost:5000/jenkins-demo-app"
+    IMAGE_TAG  = "latest"
+  }
+
   stages {
     stage('Checkout') {
       steps {
@@ -27,6 +32,23 @@ pipeline {
         '''
       }
     }
+
+    stage('Build Docker image') {
+      steps {
+        sh '''
+          docker build -t $IMAGE_NAME:$IMAGE_TAG .
+        '''
+      }
+    }
+
+    stage('Push Docker image') {
+      steps {
+        sh '''
+          docker push $IMAGE_NAME:$IMAGE_TAG
+        '''
+      }
+    }
   }
 }
+
 
