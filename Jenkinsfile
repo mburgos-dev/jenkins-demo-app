@@ -1,9 +1,17 @@
 pipeline {
   agent any
 
+  parameters {
+    choice(
+      name: 'ENV',
+      choices: ['dev', 'staging', 'prod'],
+      description: 'Selecciona el entorno'
+    )
+  }
+
   environment {
     IMAGE_NAME = "localhost:5000/jenkins-demo-app"
-    IMAGE_TAG  = "latest"
+    IMAGE_TAG  = "${params.ENV}-latest"
   }
 
   stages {
@@ -35,28 +43,20 @@ pipeline {
 
     stage('Build Docker image') {
       steps {
-        sh '''
-          docker build -t $IMAGE_NAME:$IMAGE_TAG .
-        '''
+        sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
       }
     }
 
     stage('Push Docker image') {
       steps {
-        sh '''
-          docker push $IMAGE_NAME:$IMAGE_TAG
-        '''
+        sh 'docker push $IMAGE_NAME:$IMAGE_TAG'
       }
     }
 
     stage('Run Docker image') {
       steps {
-        sh '''
-          docker run --rm $IMAGE_NAME:$IMAGE_TAG
-        '''
+        sh 'docker run --rm $IMAGE_NAME:$IMAGE_TAG'
       }
     }
   }
 }
-
-
