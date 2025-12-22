@@ -1,20 +1,13 @@
 pipeline {
   agent any
 
-  parameters {
-    choice(
-      name: 'ENV',
-      choices: ['dev', 'staging', 'prod'],
-      description: 'Selecciona el entorno'
-    )
-  }
-
   environment {
     IMAGE_NAME = "localhost:5000/jenkins-demo-app"
-    IMAGE_TAG  = "${params.ENV}-latest"
+    IMAGE_TAG  = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
   }
 
   stages {
+
     stage('Checkout') {
       steps {
         checkout scm
@@ -31,7 +24,7 @@ pipeline {
       }
     }
 
-    stage('Run tests') {
+    stage('Run tests (CI)') {
       steps {
         sh '''
           . venv/bin/activate
@@ -41,21 +34,30 @@ pipeline {
       }
     }
 
-    stage('Build Docker image') {
+    stage('Build image (CI)') {
       steps {
         sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
       }
     }
 
-    stage('Push Docker image') {
+    stage('Push image (CI)') {
       steps {
         sh 'docker push $IMAGE_NAME:$IMAGE_TAG'
       }
     }
 
-    stage('Run Docker image') {
+    stage('Deploy (CD)') {
+      when {
+        branch 'main'
+      }
       steps {
-        sh 'docker run --rm $IMAGE_NAME:$IMAGE_TAG'
+        sh '''
+          docker rm -f jenkins-demo-app || true
+          docker run -d \
+            --name jenkins-demo-app \
+            -p 5000:5000 \
+            $IMAGE_NAME:$IMAGE_TAG
+        '''
       }
     }
   }
