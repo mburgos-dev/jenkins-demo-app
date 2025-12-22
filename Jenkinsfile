@@ -34,19 +34,25 @@ pipeline {
       }
     }
 
-    stage('Build image (CI)') {
+    stage('Build & Push image (CI)') {
       steps {
-        sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
+        sh '''
+          docker build -t $IMAGE_NAME:$IMAGE_TAG .
+          docker push $IMAGE_NAME:$IMAGE_TAG
+        '''
       }
     }
 
-    stage('Push image (CI)') {
+    stage('Approval for Production') {
+      when {
+        branch 'main'
+      }
       steps {
-        sh 'docker push $IMAGE_NAME:$IMAGE_TAG'
+        input message: '¿Desplegar a PRODUCCIÓN?', ok: 'Deploy'
       }
     }
 
-    stage('Deploy (CD)') {
+    stage('Deploy to Production') {
       when {
         branch 'main'
       }
